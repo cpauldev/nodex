@@ -12,7 +12,7 @@
     "start": "electron .",
     "lint": "eslint . --max-warnings 0",
     "test": "bun test src electron",
-    "package": "bun run build && electron-builder --win nsis"
+    "package": "bun run build && electron-builder --win nsis --publish never"
   },
   "dependencies": {
     "@ethereumjs/devp2p": "^10.0.0",
