@@ -103,7 +103,11 @@ To publish a release:
 
 1. Update `package.json` version if needed.
 2. Create and push a tag such as `v0.1.0`.
-3. GitHub Actions builds the Windows installer and attaches it to the release.
+3. GitHub Actions builds the Windows installer and attaches it to the GitHub
+   Releases page.
+
+Download the `.exe` from the release assets. The installer is named like
+`Nodex-0.1.2-win-x64.exe`.
 
 ## Project structure
 
