@@ -1,0 +1,23 @@
+.record-actions { margin-bottom: var(--space-6); display: grid; gap: 10px; }
+.record-actions .ui-section-label { margin-bottom: 4px; }
+.record-action { padding: var(--space-4); display: grid; gap: 11px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface-inset); corner-shape: superellipse(1.5); }
+.record-action__copy strong, .record-action__copy span { display: block; }
+.record-action__copy strong { margin-bottom: 4px; font-size: var(--text-body); }
+.record-action__copy span { color: var(--color-text-muted); font-size: var(--text-supporting); line-height: 1.5; }
+.record-action .ui-button { width: fit-content; }
+.detail-sections { display: grid; gap: var(--space-8); }
+.detail-sections section { display: grid; gap: 10px; }
+.metadata-table { width: 100%; table-layout: auto; overflow: hidden; border: 1px solid var(--color-border); border-radius: var(--radius-md); border-collapse: separate; border-spacing: 0; corner-shape: superellipse(1.5); }
+.metadata-table tr:not(:last-child) > * { border-bottom: 1px solid var(--color-border); }
+.metadata-table th { width: 38%; padding: 11px 13px; color: var(--color-text-muted); background: var(--color-surface-inset); font-weight: 500; font-size: var(--text-supporting); text-align: left; vertical-align: top; }
+.metadata-table td { padding: 11px 38px 11px 13px; color: var(--color-text); background: var(--color-surface); font-size: .8125rem; overflow-wrap: anywhere; }
+.copy-value-cell { position: relative; cursor: pointer; transition: none; }
+.copy-value-cell:hover, .copy-value-cell:focus-visible, .copy-value-cell.is-copied { background: var(--color-hover); }
+.copy-value-badge { position: absolute; top: 7px; right: 8px; width: 23px; height: 23px; display: grid; place-items: center; border-radius: 50%; color: #fff; background: var(--color-accent); opacity: 0; transition: none; }
+.copy-value-cell:hover .copy-value-badge, .copy-value-cell:focus-visible .copy-value-badge, .copy-value-cell.is-copied .copy-value-badge { opacity: 1; }
+.geo-card { margin-bottom: var(--space-6); overflow: hidden; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); corner-shape: superellipse(1.5); }
+.geo-card__map { position: relative; aspect-ratio: 1390 / 723.47; overflow: hidden; background: var(--color-surface-inset); }
+.geo-card__map img { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.geo-card__pin { position: absolute; width: 14px; height: 14px; border: 2px solid #fff; border-radius: 50%; transform: translate(-50%, -50%); box-shadow: 0 2px 10px rgba(0,0,0,.24); }
+.geo-card .metadata-table { border: 0; border-top: 1px solid var(--color-border); border-radius: 0; }
+.geo-card__note { margin: 0; padding: 10px 13px; border-top: 1px solid var(--color-border); color: var(--color-text-faint); background: var(--color-surface-inset); font-size: var(--text-label); line-height: 1.5; }

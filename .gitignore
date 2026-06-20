@@ -1,0 +1,24 @@
+node_modules/
+dist/
+dist-electron/
+release/
+coverage/
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+*.log
+.vite/
+build/icon-*.png
+
+# IDE and local tooling
+.vscode/
+.idea/
+
+# AI/agent local files
+.agents/
+.codex/
+
+# Playwright CLI logs
+.playwright-cli/

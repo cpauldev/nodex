@@ -1,0 +1,71 @@
+{
+  "name": "nodex",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A privacy-first local Windows desktop dashboard for wireless, network, and public P2P peer discovery.",
+  "main": "dist-electron/main.js",
+  "type": "module",
+  "scripts": {
+    "icons": "node scripts/generate-icons.mjs",
+    "dev": "bun run icons && tsc -p tsconfig.electron.json && concurrently -k \"vite\" \"wait-on tcp:5173 && electron .\"",
+    "build": "bun run icons && tsc && vite build && tsc -p tsconfig.electron.json",
+    "start": "electron .",
+    "lint": "eslint . --max-warnings 0",
+    "test": "bun test src electron",
+    "package": "bun run build && electron-builder --win nsis"
+  },
+  "dependencies": {
+    "@ethereumjs/devp2p": "^10.0.0",
+    "@ethereumjs/rlp": "^10.1.2",
+    "@vitejs/plugin-react": "^4.7.0",
+    "electron": "^40.0.0",
+    "ethereum-cryptography": "^3.2.0",
+    "geoip-lite": "^2.0.3",
+    "kubo": "^0.42.0",
+    "lucide-react": "^0.468.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "vite": "^7.3.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.0",
+    "@types/geoip-lite": "^1.4.4",
+    "@types/node": "^24.10.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "concurrently": "^9.2.0",
+    "electron-builder": "^26.0.0",
+    "eslint": "^9.39.0",
+    "eslint-plugin-react-hooks": "^7.0.0",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "sharp": "^0.35.1",
+    "typescript": "~5.9.0",
+    "typescript-eslint": "^8.48.0",
+    "wait-on": "^9.0.0"
+  },
+  "build": {
+    "appId": "dev.nodex.app",
+    "productName": "Nodex",
+    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "electron/preload.cjs",
+      "package.json"
+    ],
+    "directories": {
+      "buildResources": "build",
+      "output": "release"
+    },
+    "asarUnpack": [
+      "node_modules/kubo/bin/**"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.ico"
+    }
+  },
+  "trustedDependencies": [
+    "kubo"
+  ]
+}
