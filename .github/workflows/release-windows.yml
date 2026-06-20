@@ -33,7 +33,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          generate_release_notes: true
+          body: |
+            Windows installer release for Nodex.
+
+            Download the `.exe` asset below to install the app on Windows.
           files: |
             release/*.exe
             release/latest.yml

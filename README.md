@@ -107,7 +107,7 @@ To publish a release:
    Releases page.
 
 Download the `.exe` from the release assets. The installer is named like
-`Nodex-0.1.2-win-x64.exe`.
+`Nodex-0.1.3-win-x64.exe`.
 
 ## Project structure
 

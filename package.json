@@ -1,6 +1,6 @@
 {
   "name": "nodex",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "private": true,
   "description": "A privacy-first local Windows desktop dashboard for wireless, network, and public P2P peer discovery.",
   "main": "dist-electron/main.js",
