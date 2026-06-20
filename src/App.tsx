@@ -289,7 +289,7 @@ export default function App() {
         aria-label={settingsOpen ? "Close settings" : "Open settings"}
         onClick={() => setSettingsOpen((current) => !current)}
       />
-      <div className="titlebar__brand"><img src="/icon.png" alt="" /><span>Nodex</span></div>
+      <div className="titlebar__brand"><img src="./icon.png" alt="" /><span>Nodex</span></div>
     </header>
     <AppSidebar activeView={activeView} collapsed={sidebarCollapsed} counts={counts} scanningCollectors={scanningCollectors}
       scanning={scanning} scannedAt={result?.scannedAt} currentTime={currentTime} onRunScan={() => void runScan()}
