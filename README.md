@@ -2,11 +2,13 @@
 
 # Nodex
 
-Nodex is a local Windows desktop dashboard for inspecting nearby wireless and network information, plus publicly reachable peers on Bitcoin, Ethereum, Base, IPFS, and XMTP networks.
+Nodex is a local Windows desktop app for tuning into world radio with support for over 50,000 radio stations, inspecting nearby wireless and network information, plus inspecting publicly reachable peers on Bitcoin, Ethereum, Base, IPFS, and XMTP networks.
 
 Nodex is an independent Electron-based engineering project for gaining practical experience with Electron, Windows and local networking, P2P protocols, and desktop UI engineering.
 
-The project could also grow into broader network-observation experiments: a decentralized peer-discovery network that helps map other P2P networks and their reachable nodes, signal-localization tools for estimating where nearby devices or radio sources are coming from, and Wi-Fi sensing experiments that detect presence or movement from changes in wireless signals.
+<p align="center">
+  <img src=".github/readme/world-radio.png" alt="IPFS discovery dialog screenshot" width="100%">
+</p>
 
 <p align="center">
   <img src=".github/readme/bitcoin-overview.png" alt="Bitcoin overview screenshot" width="100%">
@@ -16,12 +18,9 @@ The project could also grow into broader network-observation experiments: a dece
   <img src=".github/readme/ethereum-details.png" alt="Ethereum peer details screenshot" width="100%">
 </p>
 
-<p align="center">
-  <img src=".github/readme/ipfs-discovery-dialog.png" alt="IPFS discovery dialog screenshot" width="100%">
-</p>
-
 ## What it does
 
+- Features a built-in world radio player supporting over 50,000 radio stations from around the globe, with filters for genre, country, and language.
 - Lists nearby Wi-Fi networks from the Windows wireless interface.
 - Shows Bluetooth devices known to Windows, network-neighbor cache entries,
   multicast protocols, and installed network adapters.

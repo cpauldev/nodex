@@ -8,6 +8,7 @@ import { SectionLabel } from "../ui/SectionLabel";
 import { KindBadge } from "../records/RecordBadges";
 import { CopyableMetadataTable, type MetadataRow } from "./CopyableMetadataTable";
 import { RecordActionPanel } from "./RecordActionPanel";
+import { RadioPlayerPanel } from "./RadioPlayerPanel";
 
 function GeoMapCard({ record }: { record: SignalRecord }) {
   if (!record.geo) return null;
@@ -24,10 +25,57 @@ function GeoMapCard({ record }: { record: SignalRecord }) {
   </section>;
 }
 
-export function RecordDrawer({ record, onClose, onChanged }: { record: SignalRecord; onClose: () => void; onChanged: () => Promise<void> }) {
+export function RecordDrawer({
+  record,
+  onClose,
+  onChanged,
+  playingRadioId,
+  playingStatus,
+  volume,
+  isMuted,
+  onPlayRadio,
+  onStopRadio,
+  onVolumeChange,
+  onVolumeChangeDirect,
+  onMuteToggle
+}: {
+  record: SignalRecord;
+  onClose: () => void;
+  onChanged: () => Promise<void>;
+  playingRadioId: string | null;
+  playingStatus: string;
+  volume: number;
+  isMuted: boolean;
+  onPlayRadio: (record: SignalRecord) => void;
+  onStopRadio: () => void;
+  onVolumeChange: (volume: number) => void;
+  onVolumeChangeDirect: (volume: number) => void;
+  onMuteToggle: () => void;
+}) {
   const sections = useMemo(() => buildMetadataSections(record), [record]);
+  const isPlaying = playingRadioId === record.id && (playingStatus === "Playing Live" || playingStatus === "Buffering...");
+  const isBuffering = playingRadioId === record.id && (playingStatus === "Connecting..." || playingStatus === "Buffering...");
+
   return <Drawer title={record.name} description={<KindBadge record={record} />} onClose={onClose}>
-    <RecordActionPanel record={record} onChanged={onChanged} />
+    {record.kind === "radio" ? (
+      <RadioPlayerPanel
+        key={record.id}
+        record={record}
+        playingRadioId={playingRadioId}
+        isPlaying={isPlaying}
+        isBuffering={isBuffering}
+        status={playingRadioId === record.id ? playingStatus : "Disconnected"}
+        volume={volume}
+        isMuted={isMuted}
+        onPlay={onPlayRadio}
+        onStop={onStopRadio}
+        onVolumeChange={onVolumeChange}
+        onVolumeChangeDirect={onVolumeChangeDirect}
+        onMuteToggle={onMuteToggle}
+      />
+    ) : (
+      <RecordActionPanel record={record} onChanged={onChanged} />
+    )}
     <GeoMapCard record={record} />
     <div className="detail-sections">{sections.map((section) => <section key={section.title}>
       <SectionLabel>{section.title}</SectionLabel>

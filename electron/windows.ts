@@ -27,6 +27,7 @@ export async function runPowerShell(script: string): Promise<CommandOutput> {
   ]);
 }
 
+
 export function commandError(error: unknown, fallback: string): string {
   if (error && typeof error === "object") {
     if ("stderr" in error && String(error.stderr).trim()) return String(error.stderr).trim();

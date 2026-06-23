@@ -69,7 +69,7 @@ const PeerClusterMarker = memo(function PeerClusterMarker({ cluster, open, closi
     {renderPopover ? <div className="peer-cluster__popover" onAnimationEnd={(event) => {
       if (closing && event.target === event.currentTarget) onPopoverExited(cluster.id);
     }}>
-      {cluster.records.length > 1 ? <header><strong>{cluster.records.length} peers</strong><span>{latency === undefined ? "No latency" : `${Math.round(latency)} ms average`}</span></header> : null}
+      {cluster.records.length > 1 ? <header><strong>{cluster.records.length} peers</strong><span>{latency === undefined ? "Pending" : `${Math.round(latency)} ms average`}</span></header> : null}
       <div>{cluster.records.map((record) => <button key={record.id} onClick={() => onSelect(record)}>
         <span><strong>{record.name}</strong><small>{record.geo ? [record.geo.city, record.geo.region, record.geo.country].filter(Boolean).join(", ") : "Unknown location"}</small></span>
         <Badge tone={latencyTone(recordLatency(record))}>{recordLatency(record) === undefined ? record.status : `${recordLatency(record)} ms`}</Badge>

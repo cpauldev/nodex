@@ -1,8 +1,8 @@
 {
   "name": "nodex",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "private": true,
-  "description": "A privacy-first local Windows desktop dashboard for wireless, network, and public P2P peer discovery.",
+  "description": "Nodex is a Windows app for world radio tuning, wireless, network, and public P2P peer discovery.",
   "main": "dist-electron/main.js",
   "type": "module",
   "scripts": {

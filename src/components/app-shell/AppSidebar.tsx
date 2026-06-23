@@ -17,9 +17,43 @@ function P2PNetworkIcon({ networkId }: { networkId: P2PNetworkId }) {
 }
 
 function SidebarCount({ loading, count }: { loading: boolean; count: number }) {
-  return <span className="sidebar-count" aria-label={loading ? "Scanning" : `${count} records`}>
-    {loading ? <LoaderCircle className="ui-spin" size={13} /> : count}
+  return <span className="sidebar-count" aria-label={loading ? "Scanning" : `${count.toLocaleString()} records`}>
+    {loading ? <LoaderCircle className="ui-spin" size={13} /> : count.toLocaleString()}
   </span>;
+}
+
+function SidebarSection({ label, collapsed, prevExpanded, first, ariaLabel, onToggle, children }: {
+  label: string;
+  collapsed: boolean;
+  /** Whether the section directly above this one is expanded — controls top spacing. */
+  prevExpanded?: boolean;
+  /** First section in the list — no top spacing modifiers. */
+  first?: boolean;
+  ariaLabel: string;
+  onToggle: () => void;
+  children: React.ReactNode;
+}) {
+  const labelClass = [
+    "sidebar-group-label",
+    "sidebar-group-label--button",
+    !first && "sidebar-group-label--spaced",
+    !first && prevExpanded && "has-spacing",
+  ].filter(Boolean).join(" ");
+
+  return <>
+    <button className={labelClass} onClick={onToggle}>
+      <span>{label}</span>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+        style={{ transform: collapsed ? "rotate(-90deg)" : "rotate(0deg)", transition: "transform 150ms ease" }}>
+        <polyline points="6 9 12 15 18 9" />
+      </svg>
+    </button>
+    <nav className={collapsed ? "sidebar-section is-collapsed" : "sidebar-section"} aria-label={ariaLabel}>
+      <div className="sidebar-section__inner">
+        {children}
+      </div>
+    </nav>
+  </>;
 }
 
 export function AppSidebar({ activeView, collapsed, counts, scanningCollectors, scanning, scannedAt, currentTime, onRunScan, onViewChange }: {
@@ -33,24 +67,22 @@ export function AppSidebar({ activeView, collapsed, counts, scanningCollectors, 
   onRunScan: () => void;
   onViewChange: (view: ViewId) => void;
 }) {
-  const [p2pCollapsed, setP2pCollapsed] = useState(false);
   const [localCollapsed, setLocalCollapsed] = useState(false);
+  const [p2pCollapsed, setP2pCollapsed] = useState(false);
+  const [publicCollapsed, setPublicCollapsed] = useState(false);
   const [fadeProgress, setFadeProgress] = useState(0);
   const scrollRef = useRef<HTMLDivElement | null>(null);
-  
+
   const scanMeta = scannedAt ? `Last scan ${formatRelativeTime(scannedAt, currentTime)}` : "Not scanned";
+
   useEffect(() => {
     const target = scrollRef.current;
     if (!target) return;
     const updateScrollState = () => {
       const maxScroll = target.scrollHeight - target.clientHeight;
-      if (maxScroll <= 1) {
-        setFadeProgress(0);
-        return;
-      }
+      if (maxScroll <= 1) { setFadeProgress(0); return; }
       const distanceToBottom = Math.max(0, maxScroll - target.scrollTop);
-      const fade = Math.min(1, distanceToBottom / 72);
-      setFadeProgress(fade);
+      setFadeProgress(Math.min(1, distanceToBottom / 72));
     };
     updateScrollState();
     target.addEventListener("scroll", updateScrollState, { passive: true });
@@ -59,58 +91,53 @@ export function AppSidebar({ activeView, collapsed, counts, scanningCollectors, 
       target.removeEventListener("scroll", updateScrollState);
       window.removeEventListener("resize", updateScrollState);
     };
-  }, [activeView, collapsed, counts, localCollapsed, p2pCollapsed]);
-  
+  }, [activeView, collapsed, counts, localCollapsed, p2pCollapsed, publicCollapsed]);
+
+  const renderSidebarItem = (id: ViewId, label: string, iconNode: React.ReactNode, loading: boolean) => (
+    <button
+      key={id}
+      aria-current={activeView === id ? "page" : undefined}
+      data-tooltip={label}
+      className={activeView === id ? "sidebar-item is-active" : "sidebar-item"}
+      onClick={() => onViewChange(id)}
+    >
+      {iconNode}
+      <span>{label}</span>
+      <SidebarCount loading={loading} count={counts[id] ?? 0} />
+    </button>
+  );
+
   return <aside className="sidebar">
     <div className="sidebar-body">
       <div ref={scrollRef} className="sidebar-scroll" style={{ ["--sidebar-fade-progress"]: fadeProgress } as CSSProperties}>
-        <button className="sidebar-group-label sidebar-group-label--button" onClick={() => setLocalCollapsed(!localCollapsed)}>
-          <span>Local network</span>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: localCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 150ms ease' }}>
-            <polyline points="6 9 12 15 18 9" />
-          </svg>
-        </button>
-        <nav className={localCollapsed ? "sidebar-section is-collapsed" : "sidebar-section"} aria-label="Local network views">
-          <div className="sidebar-section__inner">
-            {localViews.map(({ id, label, icon: Icon, collectors }) => <button
-              aria-current={activeView === id ? "page" : undefined}
-              data-tooltip={label}
-              className={activeView === id ? "sidebar-item is-active" : "sidebar-item"}
-              key={id}
-              onClick={() => onViewChange(id)}
-            ><Icon size={17} /><span>{label}</span><SidebarCount loading={collectors.some((collector) => scanningCollectors.has(collector))} count={counts[id] ?? 0} /></button>)}
-          </div>
-        </nav>
-        <button className={localCollapsed ? "sidebar-group-label sidebar-group-label--button sidebar-group-label--spaced" : "sidebar-group-label sidebar-group-label--button sidebar-group-label--spaced has-spacing"} onClick={() => setP2pCollapsed(!p2pCollapsed)}>
-          <span>P2P networks</span>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: p2pCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 150ms ease' }}>
-            <polyline points="6 9 12 15 18 9" />
-          </svg>
-        </button>
-        <nav className={p2pCollapsed ? "sidebar-section is-collapsed" : "sidebar-section"} aria-label="P2P network views">
-          <div className="sidebar-section__inner">
-            {p2pViews.map(({ id, label, networkId }) => <button
-              aria-current={activeView === id ? "page" : undefined}
-              data-tooltip={label}
-              className={activeView === id ? "sidebar-item is-active" : "sidebar-item"}
-              key={id}
-              onClick={() => onViewChange(id)}
-            ><P2PNetworkIcon networkId={networkId} /><span>{label}</span><SidebarCount loading={scanningCollectors.has(id as ScanCollectorId)} count={counts[id] ?? 0} /></button>)}
-          </div>
-        </nav>
+
+        <SidebarSection label="Public services" collapsed={publicCollapsed} first ariaLabel="Public service views" onToggle={() => setPublicCollapsed(!publicCollapsed)}>
+          {localViews.filter(v => v.id === "local-radio").map(({ id, label, icon: Icon, collectors }) =>
+            renderSidebarItem(id, label, <Icon size={17} />, collectors.some(c => scanningCollectors.has(c)))
+          )}
+        </SidebarSection>
+
+        <SidebarSection label="Local network" collapsed={localCollapsed} prevExpanded={!publicCollapsed} ariaLabel="Local network views" onToggle={() => setLocalCollapsed(!localCollapsed)}>
+          {localViews.filter(v => v.id !== "local-radio").map(({ id, label, icon: Icon, collectors }) =>
+            renderSidebarItem(id, label, <Icon size={17} />, collectors.some(c => scanningCollectors.has(c)))
+          )}
+        </SidebarSection>
+
+        <SidebarSection label="P2P networks" collapsed={p2pCollapsed} prevExpanded={!localCollapsed} ariaLabel="P2P network views" onToggle={() => setP2pCollapsed(!p2pCollapsed)}>
+          {p2pViews.map(({ id, label, networkId }) =>
+            renderSidebarItem(id, label, <P2PNetworkIcon networkId={networkId} />, scanningCollectors.has(id as ScanCollectorId))
+          )}
+        </SidebarSection>
+
       </div>
       <div className="sidebar-footer">
         <div className="sidebar-scan-area">
-          <Button
-            className="sidebar-scan-button"
-            variant="primary"
-            size="md"
-            disabled={scanning}
-            onClick={onRunScan}
-          >
+          <Button className="sidebar-scan-button" variant="primary" size="md" disabled={scanning} onClick={onRunScan}>
             <span className="sidebar-scan-button__copy">
               <span className="sidebar-scan-button__label">
-                {scanning ? <><LoaderCircle className="ui-spin sidebar-scan-button__spinner" size={14} aria-hidden="true" /><span className="sidebar-scan-button__label-text sidebar-scan-button__label-text--shimmer">Scanning…</span></> : <span className="sidebar-scan-button__label-text">Scan</span>}
+                {scanning
+                  ? <><LoaderCircle className="ui-spin sidebar-scan-button__spinner" size={14} aria-hidden="true" /><span className="sidebar-scan-button__label-text sidebar-scan-button__label-text--shimmer">Scanning…</span></>
+                  : <span className="sidebar-scan-button__label-text">Scan</span>}
               </span>
               <span className="sidebar-scan-button__meta">{scanMeta}</span>
             </span>

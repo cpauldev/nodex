@@ -1,4 +1,4 @@
-import type { SignalRecord } from "./types.js";
+import type { SignalRecord, RadioFilters } from "./types.js";
 import { runPowerShell } from "./windows.js";
 
 async function powershell(script: string): Promise<string> {
@@ -172,4 +172,224 @@ Get-NetAdapter -ErrorAction SilentlyContinue |
       Status: row.Status ?? null
     }
   }));
+}
+
+
+
+type RadioBrowserStation = {
+  stationuuid: string;
+  url?: string;
+  url_resolved?: string;
+  homepage?: string;
+  country?: string;
+  name?: string;
+  codec?: string;
+  bitrate?: number;
+  tags?: string;
+  language?: string;
+  favicon?: string;
+  votes?: number;
+  state?: string;
+};
+
+export const RADIO_DIRECTORY_LIMITS = [40, 100, 250, 500] as const;
+export type RadioDirectoryLimit = typeof RADIO_DIRECTORY_LIMITS[number];
+
+export function isRadioDirectoryLimit(value: unknown): value is RadioDirectoryLimit {
+  return typeof value === "number" && RADIO_DIRECTORY_LIMITS.includes(value as RadioDirectoryLimit);
+}
+
+export const DEFAULT_RADIO_FILTERS: RadioFilters = {
+  tag: "",
+  countrycode: "",
+  codec: "",
+  bitrateMin: "",
+  hidebroken: false,
+};
+
+const radioCache = new Map<string, SignalRecord[]>();
+
+async function prefetchRadioPage(limit: RadioDirectoryLimit, offset: number, filters: RadioFilters = DEFAULT_RADIO_FILTERS): Promise<void> {
+  const cacheKey = `${limit}-${offset}-${filters.tag}-${filters.countrycode}-${filters.codec}-${filters.bitrateMin}-${filters.hidebroken}`;
+  if (radioCache.has(cacheKey)) return;
+
+  const mirrors = [
+    "https://all.api.radio-browser.info",
+    "https://de1.api.radio-browser.info",
+    "https://at1.api.radio-browser.info",
+    "https://fr1.api.radio-browser.info"
+  ];
+
+  let stations: RadioBrowserStation[] = [];
+  for (const mirror of mirrors) {
+    try {
+      const params = new URLSearchParams({ limit: String(limit), offset: String(offset), order: "votes", reverse: "true" });
+      if (filters.tag) params.set("tag", filters.tag);
+      if (filters.countrycode) params.set("countrycode", filters.countrycode);
+      if (filters.codec) params.set("codec", filters.codec);
+      if (filters.bitrateMin) params.set("bitrateMin", filters.bitrateMin);
+      if (filters.hidebroken) params.set("hidebroken", "true");
+      const res = await fetch(`${mirror}/json/stations/search?${params}`, { signal: AbortSignal.timeout(10_000) });
+      if (res.ok) {
+        stations = await res.json();
+        if (stations && stations.length > 0) break;
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  const urlRewrites: Record<string, string> = {
+    "http://livestreaming.esradio.fm/stream64.mp3": "https://libertaddigital-radio-live1.flumotion.com/libertaddigital/ld-live1-low.mp3"
+  };
+
+  const records: (SignalRecord | null)[] = stations.map((s) => {
+    let resolvedUrl = s.url_resolved || s.url || "";
+    if (!resolvedUrl) return null;
+    if (urlRewrites[resolvedUrl]) {
+      resolvedUrl = urlRewrites[resolvedUrl];
+    }
+
+    let hostname = "";
+    try {
+      hostname = new URL(resolvedUrl).hostname;
+    } catch {
+      hostname = resolvedUrl;
+    }
+
+    const record: SignalRecord = {
+      id: `radio-${s.stationuuid}`,
+      kind: "radio" as const,
+      recordClass: "observed" as const,
+      provenance: s.country || "Global Radio",
+      name: s.name ? s.name.trim() : "Unknown Station",
+      address: hostname,
+      status: "Unverified",
+      details: {
+        "Stream URL": resolvedUrl,
+        "Homepage": s.homepage || null,
+        "Tags": s.tags || null,
+        "Country": s.country || "Unknown",
+        "Language": s.language || "Unknown",
+        "Bitrate": s.bitrate ? `${s.bitrate} kbps` : null,
+        "Codec": s.codec || null,
+        "Latency (ms)": null,
+        "Reachability": "Unverified",
+        "Favicon": s.favicon || null,
+        "Votes": s.votes || null,
+        "State": s.state || null
+      }
+    };
+    return record;
+  });
+
+  const validRecords = records.filter((r) => r !== null) as SignalRecord[];
+  radioCache.set(cacheKey, validRecords);
+}
+
+export async function collectRadio(
+  limit: RadioDirectoryLimit = 100,
+  offset = 0,
+  filters: RadioFilters = DEFAULT_RADIO_FILTERS,
+  onRecord?: (record: SignalRecord) => void
+): Promise<SignalRecord[]> {
+  const cacheKey = `${limit}-${offset}-${filters.tag}-${filters.countrycode}-${filters.codec}-${filters.bitrateMin}-${filters.hidebroken}`;
+  if (radioCache.has(cacheKey)) {
+    const cachedRecords = radioCache.get(cacheKey)!;
+    if (onRecord) {
+      for (const record of cachedRecords) {
+        onRecord(record);
+      }
+    }
+    // Eagerly prefetch the next and previous pages in the background
+    const nextOffset = offset + limit;
+    void prefetchRadioPage(limit, nextOffset, filters);
+    if (offset - limit >= 0) {
+      void prefetchRadioPage(limit, offset - limit, filters);
+    }
+    return cachedRecords;
+  }
+
+  const mirrors = [
+    "https://all.api.radio-browser.info",
+    "https://de1.api.radio-browser.info",
+    "https://at1.api.radio-browser.info",
+    "https://fr1.api.radio-browser.info"
+  ];
+
+  let stations: RadioBrowserStation[] = [];
+  for (const mirror of mirrors) {
+    try {
+      const params = new URLSearchParams({ limit: String(limit), offset: String(offset), order: "votes", reverse: "true" });
+      if (filters.tag) params.set("tag", filters.tag);
+      if (filters.countrycode) params.set("countrycode", filters.countrycode);
+      if (filters.codec) params.set("codec", filters.codec);
+      if (filters.bitrateMin) params.set("bitrateMin", filters.bitrateMin);
+      if (filters.hidebroken) params.set("hidebroken", "true");
+      const res = await fetch(`${mirror}/json/stations/search?${params}`, { signal: AbortSignal.timeout(10_000) });
+      if (res.ok) {
+        stations = await res.json();
+        if (stations && stations.length > 0) break;
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  const urlRewrites: Record<string, string> = {
+    "http://livestreaming.esradio.fm/stream64.mp3": "https://libertaddigital-radio-live1.flumotion.com/libertaddigital/ld-live1-low.mp3"
+  };
+
+  const records: (SignalRecord | null)[] = stations.map((s) => {
+    let resolvedUrl = s.url_resolved || s.url || "";
+    if (!resolvedUrl) return null;
+    if (urlRewrites[resolvedUrl]) {
+      resolvedUrl = urlRewrites[resolvedUrl];
+    }
+
+    let hostname = "";
+    try {
+      hostname = new URL(resolvedUrl).hostname;
+    } catch {
+      hostname = resolvedUrl;
+    }
+
+    const record: SignalRecord = {
+      id: `radio-${s.stationuuid}`,
+      kind: "radio" as const,
+      recordClass: "observed" as const,
+      provenance: s.country || "Global Radio",
+      name: s.name ? s.name.trim() : "Unknown Station",
+      address: hostname,
+      status: "Unverified",
+      details: {
+        "Stream URL": resolvedUrl,
+        "Homepage": s.homepage || null,
+        "Tags": s.tags || null,
+        "Country": s.country || "Unknown",
+        "Language": s.language || "Unknown",
+        "Bitrate": s.bitrate ? `${s.bitrate} kbps` : null,
+        "Codec": s.codec || null,
+        "Latency (ms)": null,
+        "Reachability": "Unverified",
+        "Favicon": s.favicon || null,
+        "Votes": s.votes || null,
+        "State": s.state || null
+      }
+    };
+    onRecord?.(record);
+    return record;
+  });
+
+  const validRecords = records.filter((r) => r !== null) as SignalRecord[];
+  radioCache.set(cacheKey, validRecords);
+
+  // Eagerly prefetch the next and previous pages in the background
+  const nextOffset = offset + limit;
+  void prefetchRadioPage(limit, nextOffset, filters);
+  if (offset - limit >= 0) {
+    void prefetchRadioPage(limit, offset - limit, filters);
+  }
+
+  return validRecords;
 }

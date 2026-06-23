@@ -1,4 +1,4 @@
-export type SignalKind = "wifi" | "bluetooth" | "network" | "adapter" | "p2p";
+export type SignalKind = "wifi" | "bluetooth" | "network" | "adapter" | "p2p" | "radio";
 export type RecordClass = "observed" | "known" | "neighbor" | "protocol" | "infrastructure" | "p2p-network";
 
 export interface SignalRecord {
@@ -36,15 +36,16 @@ export interface ScanResult {
 }
 
 export type ScanCollectorId =
+  | "radio"
   | "wifi"
   | "bluetooth"
   | "network"
   | "adapters"
-  | "p2p-xmtp"
-  | "p2p-ethereum"
-  | "p2p-ipfs"
   | "p2p-bitcoin"
-  | "p2p-base";
+  | "p2p-ethereum"
+  | "p2p-base"
+  | "p2p-ipfs"
+  | "p2p-xmtp";
 
 export interface ScanProgress {
   collectorId: ScanCollectorId;
@@ -72,4 +73,12 @@ export interface RecordActionInput {
   action: RecordActionId;
   record: SignalRecord;
   password?: string;
+}
+
+export interface RadioFilters {
+  tag: string;
+  countrycode: string;
+  codec: string;
+  bitrateMin: string;
+  hidebroken: boolean;
 }

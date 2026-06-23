@@ -1,31 +1,32 @@
-import { Bluetooth, Cable, List, Network, Radio, Waypoints, Wifi } from "lucide-react";
+import { Bluetooth, Cable, List, Network, Music, Waypoints, Wifi } from "lucide-react";
 import type { P2PNetworkId, RecordClass, ScanCollectorId, SignalKind, SignalRecord } from "./types";
 
-export type LocalViewId = "local-all" | "local-wifi" | "local-bluetooth" | "local-neighbors" | "local-services" | "local-adapters";
+export type LocalViewId = "local-all" | "local-wifi" | "local-bluetooth" | "local-neighbors" | "local-services" | "local-adapters" | "local-radio";
 export type ViewId = LocalViewId | "p2p-xmtp" | "p2p-ethereum" | "p2p-ipfs" | "p2p-bitcoin" | "p2p-base";
 export type SortKey = "kind" | "name" | "strength" | "status" | "address" | "provenance";
 export type SortState = { key: SortKey; direction: "asc" | "desc" };
 export type Tone = "neutral" | "accent" | "info" | "success" | "warning" | "danger" | "purple";
 
-export const localViews: Array<{ id: LocalViewId; label: string; description: string; collectors: ScanCollectorId[]; icon: typeof Radio; matches: (record: SignalRecord) => boolean }> = [
-  { id: "local-all", label: "All local data", description: "Nearby wireless devices, network neighbors, services, and adapters detected by Windows.", collectors: ["wifi", "bluetooth", "network", "adapters"], icon: List, matches: (record) => record.kind !== "p2p" },
+export const localViews: Array<{ id: LocalViewId; label: string; description: string; collectors: ScanCollectorId[]; icon: typeof Music; matches: (record: SignalRecord) => boolean }> = [
+  { id: "local-all", label: "All local data", description: "Nearby wireless devices, network neighbors, services, and adapters detected by Windows.", collectors: ["wifi", "bluetooth", "network", "adapters"], icon: List, matches: (record) => record.kind !== "p2p" && record.kind !== "radio" },
   { id: "local-wifi", label: "Wi-Fi networks", description: "Nearby Wi-Fi networks detected by the Windows wireless interface.", collectors: ["wifi"], icon: Wifi, matches: (record) => record.kind === "wifi" },
   { id: "local-bluetooth", label: "Bluetooth devices", description: "Bluetooth devices currently known to Windows.", collectors: ["bluetooth"], icon: Bluetooth, matches: (record) => record.kind === "bluetooth" },
   { id: "local-neighbors", label: "Network neighbors", description: "Devices currently listed in the Windows network neighbor cache.", collectors: ["network"], icon: Network, matches: (record) => record.recordClass === "neighbor" },
   { id: "local-services", label: "Multicast services", description: "Local multicast groups and service-discovery protocols observed by Windows.", collectors: ["network"], icon: Waypoints, matches: (record) => record.recordClass === "protocol" },
-  { id: "local-adapters", label: "Network adapters", description: "Network interfaces installed on this Windows device.", collectors: ["adapters"], icon: Cable, matches: (record) => record.kind === "adapter" }
+  { id: "local-adapters", label: "Network adapters", description: "Network interfaces installed on this Windows device.", collectors: ["adapters"], icon: Cable, matches: (record) => record.kind === "adapter" },
+  { id: "local-radio", label: "World radio", description: "Discover live radio stations from around the world.", collectors: ["radio"], icon: Music, matches: (record) => record.kind === "radio" }
 ];
 
 export const p2pViews: Array<{ id: ViewId; label: string; description: string; networkName: string; networkId: P2PNetworkId; supportsExpandedDiscovery: boolean; footerDescription: string }> = [
-  { id: "p2p-base", label: "Base", description: "Base devp2p bootnodes and discovered candidates checked through discovery v4 and TCP.", networkName: "Base Mainnet", networkId: "base", supportsExpandedDiscovery: true, footerDescription: "Search beyond the configured endpoints." },
   { id: "p2p-bitcoin", label: "Bitcoin", description: "Bitcoin peers found through mainnet DNS seeds and peer announcements, then verified by handshake.", networkName: "Bitcoin Mainnet", networkId: "bitcoin", supportsExpandedDiscovery: true, footerDescription: "Search beyond the configured endpoints." },
   { id: "p2p-ethereum", label: "Ethereum", description: "Ethereum devp2p candidates found through bootnodes and DNS discovery, then checked for TCP reachability.", networkName: "Ethereum Mainnet", networkId: "ethereum", supportsExpandedDiscovery: true, footerDescription: "Search beyond the configured endpoints." },
+  { id: "p2p-base", label: "Base", description: "Base devp2p bootnodes and discovered candidates checked through discovery v4 and TCP.", networkName: "Base Mainnet", networkId: "base", supportsExpandedDiscovery: true, footerDescription: "Search beyond the configured endpoints." },
   { id: "p2p-ipfs", label: "IPFS", description: "IPFS bootstrap peers and verified swarm peers sampled through a temporary local Kubo runtime.", networkName: "IPFS", networkId: "ipfs", supportsExpandedDiscovery: true, footerDescription: "Search beyond the configured endpoints." },
-  { id: "p2p-xmtp", label: "XMTP", description: "Official XMTP Testnet nodes resolved and checked for reachability.", networkName: "XMTP Testnet", networkId: "xmtp", supportsExpandedDiscovery: false, footerDescription: "Additional peer discovery is not available." }
+  { id: "p2p-xmtp", label: "XMTP", description: "Official XMTP Testnet nodes checked for DNS, TCP, and gRPC health/version.", networkName: "XMTP Testnet", networkId: "xmtp", supportsExpandedDiscovery: false, footerDescription: "Additional peer discovery is not available." }
 ];
 
 export const kindLabel: Record<SignalKind, string> = {
-  wifi: "Wi-Fi", bluetooth: "Bluetooth", network: "Network", adapter: "Adapter", p2p: "P2P Network"
+  wifi: "Wi-Fi", bluetooth: "Bluetooth", network: "Network", adapter: "Adapter", p2p: "P2P", radio: "Radio"
 };
 
 export const classLabel: Record<RecordClass, string> = {
@@ -34,22 +35,30 @@ export const classLabel: Record<RecordClass, string> = {
 };
 
 export const networkLabels: Record<P2PNetworkId, string> = {
-  ethereum: "Ethereum", ipfs: "IPFS", xmtp: "XMTP", bitcoin: "Bitcoin", base: "Base"
+  bitcoin: "Bitcoin",
+  ethereum: "Ethereum",
+  base: "Base",
+  ipfs: "IPFS",
+  xmtp: "XMTP"
 };
 
 export const scanCollectorIds: ScanCollectorId[] = [
-  "wifi", "bluetooth", "network", "adapters", "p2p-xmtp", "p2p-ethereum", "p2p-ipfs", "p2p-bitcoin", "p2p-base"
+  "radio", "wifi", "bluetooth", "network", "adapters", "p2p-bitcoin", "p2p-ethereum", "p2p-base", "p2p-ipfs", "p2p-xmtp"
 ];
 
+const KIND_TO_COLLECTOR: Record<string, ScanCollectorId> = {
+  wifi: "wifi",
+  bluetooth: "bluetooth",
+  adapter: "adapters",
+  radio: "radio",
+};
+
 export function collectorForRecord(record: SignalRecord): ScanCollectorId {
-  if (record.kind === "wifi") return "wifi";
-  if (record.kind === "bluetooth") return "bluetooth";
-  if (record.kind === "adapter") return "adapters";
   if (record.kind === "p2p") {
     const view = p2pViews.find(({ networkName }) => networkName === record.provenance);
-    if (view) return view.id as ScanCollectorId;
+    return (view?.id ?? "network") as ScanCollectorId;
   }
-  return "network";
+  return KIND_TO_COLLECTOR[record.kind] ?? "network";
 }
 
 export function getSecondaryLabel(record: SignalRecord): string | undefined {

@@ -35,6 +35,7 @@ export class IPFSCollector extends BaseP2PCollector {
   ): Promise<P2PEndpoint[]> {
     if (settings.scope === "known") return this.collectBootstrapPeers(options, onEndpoint);
     this.pruneVerifiedPeers();
+    const bootstrapRecords = await this.collectBootstrapPeers(options, onEndpoint);
     const runtime = new KuboRuntime({ bootstrapPeers: IPFS_BOOTSTRAP_PEERS });
     const deadline = Date.now() + MAX_CRAWL_DURATION_MS;
     const emitted = new Set<string>();
@@ -42,7 +43,11 @@ export class IPFSCollector extends BaseP2PCollector {
       await runtime.start();
       const bootstrapPeerIds = new Set(IPFS_BOOTSTRAP_PEERS.map((address) => address.split("/p2p/")[1]).filter(Boolean));
       const connectedBootstrapPeers = await this.connectBootstrapPeers(runtime, options.connectionTimeoutMs);
-      if (connectedBootstrapPeers === 0) return this.cachedEndpoints(options.maxRecordsPerNetwork);
+      if (connectedBootstrapPeers === 0) {
+        // A cold start without any bootstrap dial success should still surface
+        // the configured bootstrap peers instead of returning an empty view.
+        return this.collectBootstrapPeers(options, onEndpoint);
+      }
       // A swarm listing is passive. Query the public Amino DHT only after a
       // verified bootstrap connection, then explicitly dial returned peer IDs.
       // A candidate is emitted only if Kubo reports an active swarm connection.
@@ -83,10 +88,11 @@ export class IPFSCollector extends BaseP2PCollector {
       }
     } catch {
       for (const peerId of emitted) this.recordFailure(peerId);
+      return bootstrapRecords;
     } finally {
       await runtime.stop();
     }
-    return this.cachedEndpoints(options.maxRecordsPerNetwork);
+    return [...bootstrapRecords, ...this.cachedEndpoints(options.maxRecordsPerNetwork)].slice(0, options.maxRecordsPerNetwork);
   }
 
   private async connectBootstrapPeers(runtime: KuboRuntime, timeoutMs: number): Promise<number> {
