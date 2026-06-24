@@ -1,6 +1,6 @@
 {
   "name": "nodex",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "private": true,
   "description": "Nodex is a Windows app for world radio tuning, wireless, network, and public P2P peer discovery.",
   "main": "dist-electron/main.js",
