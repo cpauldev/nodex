@@ -6,6 +6,8 @@ Nodex is a local Windows desktop app for tuning into world radio with support fo
 
 Nodex is an independent Electron-based engineering project for gaining practical experience with Electron, Windows and local networking, P2P protocols, and desktop UI engineering.
 
+### [Download (Nodex-0.1.6-win-x64.exe)](https://github.com/cpauldev/nodex/releases/download/v0.1.6/Nodex-0.1.6-win-x64.exe) | [Releases](https://github.com/cpauldev/nodex/releases/)
+
 <p align="center">
   <img src=".github/readme/world-radio.png" alt="IPFS discovery dialog screenshot" width="100%">
 </p>
